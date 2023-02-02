@@ -1,0 +1,11 @@
+README.md
+setup.py
+code/__init__.py
+code/pdbbind_data_processing/__init__.py
+code/pdbbind_data_processing/cli_test.py
+code/pdbbind_data_processing/ligand_sdf2pdb.py
+deepvs.egg-info/PKG-INFO
+deepvs.egg-info/SOURCES.txt
+deepvs.egg-info/dependency_links.txt
+deepvs.egg-info/entry_points.txt
+deepvs.egg-info/top_level.txt

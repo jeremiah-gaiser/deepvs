@@ -1,0 +1,22 @@
+# ---- PATHS
+# ABSOLUTE PATHS
+pdbbind_dir: "/xdisk/twheeler/jgaiser/deepvs2/pdbbind/"
+
+# RELATIVE PATHS FROM ROOT DIRECTORY
+ligand_pdb_dir: "data/training_data/structures/ligand_pdbs/"
+interaction_profile_dir: "data/training_data/structures/interaction_profiles/"
+
+ligand_pdb_ft: "data/training_data/structures/ligand_pdbs/%s_ligand.pdb"
+interaction_profile_ft: "data/training_data/structures/interaction_profiles/%s_ip.pkl"
+
+# RELATIVE PATHS FROM `pdbbind_dir`
+ligand_sdf_ft: "%s/%s_ligand.sdf"
+
+
+# ----- VARIABLES
+
+# any protein atom farther than this distance from any ligand atom...
+# ...will be removed in `trim_protein_pdbs` operation
+protein_trim_distance: 20
+
+

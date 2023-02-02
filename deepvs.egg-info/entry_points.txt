@@ -1,0 +1,2 @@
+[console_scripts]
+cli_test = code.pdbbind_data_processing.cli_test:main

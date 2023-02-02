@@ -1,42 +1,29 @@
 import sys
 import os
 import glob
-import yaml
 
-# PLIP requires ligand and protein structure data in one PDB.
-# So we need to generate PDB versions of SDF ligand files.
+def ligand_sdf2pdb(config: dict, id_batch: list) -> None:
+    # PLIP requires ligand and protein structure data in one PDB.
+    # So we need to generate PDB versions of SDF ligand files.
 
-with open('config.yaml', 'r') as config_file:  
-  config = yaml.safe_load(config_file)
+    # command line function to convert isdf file to pdb
+    obabel_command = "obabel -isdf %s -opdb > %s" 
+    root = config['root']
 
-# command line function to convert isdf file to pdb
-obabel_command = "obabel -isdf %s -opdb > %s" 
+    ligand_pdb_ft = root + config['ligand_pdb_ft']
+    ligand_sdf_ft = config['pdbbind_dir'] + config['ligand_sdf_ft']
+    output_dir = root + config['ligand_pdb_dir']
 
-ligand_file_template = config['ligand_pdb_file_template']
+    # if output directory doesn't exist, make it
+    if os.path.exists(output_dir) == False:
+        os.makedirs(output_dir)
 
-output_dir = "/".join(ligand_file_template.split('/')[:-1])+"/"
+    input_total = len(id_batch)
 
-# if output directory doesn't exist, make it
-if os.path.exists(output_dir) == False:
-  os.system("mkdir -p %s" % output_dir)
+    for id_itr, pdb_id in enumerate(id_batch):
+        input_sdf = ligand_sdf_ft % (pdb_id, pdb_id)
+        output_pdb = ligand_pdb_ft % pdb_id 
 
-input_dir = sorted(glob.glob(config['pdbbind_dir'] + "/*/"))
+        os.system(obabel_command % (input_sdf, output_pdb))
 
-# do not count 'index','readme' directories in total
-input_total = len(input_dir)-2
-
-for dir_idx,input_target_dir in enumerate(input_dir):
-  target_id = input_target_dir.split('/')[-2]
-
-  # skip index and readme directories
-  if target_id in ['index', 'readme']:
-    continue
-
-  input_ligand_file = input_target_dir + target_id + "_ligand.sdf"
-  output_ligand_file = ligand_file_template % target_id
-
-  # if ligand PDB doesn't exist, make it
-  if os.path.exists(output_ligand_file) == False:
-    os.system(obabel_command % (input_ligand_file, output_ligand_file))
-
-  print("Converted %s: %s of %s" % (target_id, dir_idx+1, input_total))
+        print("Converted %s: %s of %s" % (pdb_id, id_itr+1, input_total))
