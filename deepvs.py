@@ -6,9 +6,11 @@ import argparse
 from glob import glob
 
 from code.pdbbind_data_processing.ligand_sdf2pdb import ligand_sdf2pdb 
-from code.pdbbind_data_processing.get_plip_data import get_plip_data
+# from code.pdbbind_data_processing.get_plip_data import get_plip_data
+from code.pdbbind_data_processing.generate_point_clouds import generate_point_clouds
 
 import code.utils.string_utils as string_utils
+from code.utils.get_path import get_path
 
 parser = argparse.ArgumentParser(
                     prog = 'DeepVS',
@@ -23,26 +25,37 @@ args = parser.parse_args()
 
 root = os.path.dirname(__file__) + "/"
 CONFIG_PATH =  root + "config.yaml"
-config['root'] = root
 
 with open(CONFIG_PATH, 'r') as config_file:  
     config = yaml.safe_load(config_file) 
 
-training_data_processes = ['ligand_sdf2pdb']
+config['paths']['absolute']['directories']['root'] = root
+
+training_data_processes = ['ligand_sdf2pdb', 
+                           'get_plip_data',
+                           'generate_point_clouds']
+
 data_processing = False
 
-if script_key in training_data_proceses: 
+if args.action in training_data_processes: 
     data_processing = True
 
 script_dict = {
-    'ligand_sdf2pdb': ligand_sdf2pdb
-    'get_plip_data': get_plip_data
+    'ligand_sdf2pdb': ligand_sdf2pdb,
+    # 'get_plip_data': get_plip_data,
+    'generate_point_clouds': generate_point_clouds
 }
 
 if data_processing:
     pdbbind_ids = []  
 
-    for target in glob(config['pdbbind_dir'] + "*/"):
+    for directory in config['paths']['root_relative']['directories'].values():
+        root_relative_dir = root + directory
+        if os.path.exists(root_relative_dir) == False:
+            if "%s" not in root_relative_dir:
+                os.makedirs(root_relative_dir)
+
+    for target in glob(get_path(config, 'pdbbind_dir') + "*/"):
         pdb_id = string_utils.get_pdb_id(target)
 
         if pdb_id in ['index', 'readme']:
@@ -51,6 +64,6 @@ if data_processing:
         pdbbind_ids.append(pdb_id)
 
     pdbbind_ids = np.array(sorted(pdbbind_ids))
-    id_batch = np.array_split(pdbbind_ids, batch_count)[batch_number-1].tolist()
+    id_batch = np.array_split(pdbbind_ids, args.batch_count)[args.batch_number-1].tolist()
 
-    script_dict[script_key](config, id_batch)
+    script_dict[args.action](config, id_batch)

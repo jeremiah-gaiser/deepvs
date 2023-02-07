@@ -1,6 +1,7 @@
 import sys
 import os
 import glob
+from code.utils.get_path import get_path
 
 def ligand_sdf2pdb(config: dict, id_batch: list) -> None:
     # PLIP requires ligand and protein structure data in one PDB.
@@ -8,15 +9,11 @@ def ligand_sdf2pdb(config: dict, id_batch: list) -> None:
 
     # command line function to convert isdf file to pdb
     obabel_command = "obabel -isdf %s -opdb > %s" 
-    root = config['root']
 
-    ligand_pdb_ft = root + config['ligand_pdb_ft']
-    ligand_sdf_ft = config['pdbbind_dir'] + config['ligand_sdf_ft']
-    output_dir = root + config['ligand_pdb_dir']
-
-    # if output directory doesn't exist, make it
-    if os.path.exists(output_dir) == False:
-        os.makedirs(output_dir)
+    pdbbind_dir   = get_path(config, 'pdbbind_dir')
+    ligand_pdb_ft = get_path(config, 'ligand_pdb_ft')
+    output_dir    = get_path(config, 'ligand_pdb_dir')
+    ligand_sdf_ft = get_path(config, 'ligand_sdf_ft')
 
     input_total = len(id_batch)
 

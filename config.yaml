@@ -1,22 +1,35 @@
 # ---- PATHS
-# ABSOLUTE PATHS
-pdbbind_dir: "/xdisk/twheeler/jgaiser/deepvs2/pdbbind/"
+# For `get_path` function to work, be sure leaf key value is unique
+paths:
+  absolute:
+    directories:
+      pdbbind_dir: "/xdisk/twheeler/jgaiser/deepvs2/pdbbind/"
 
-# RELATIVE PATHS FROM ROOT DIRECTORY
-ligand_pdb_dir: "data/training_data/structures/ligand_pdbs/"
-interaction_profile_dir: "data/training_data/structures/interaction_profiles/"
+  # RELATIVE PATHS FROM ROOT DIRECTORY
+  root_relative:
+    directories:
+      ligand_pdb_dir: "data/training_data/structures/ligand_pdbs/"
+      interaction_profile_dir: "data/training_data/structures/interaction_profiles/"
+      point_cloud_dir: "data/graph_data/pocket_point_clouds/%s_angstroms/"
+      temporary_dir: "data/temp/"
 
-ligand_pdb_ft: "data/training_data/structures/ligand_pdbs/%s_ligand.pdb"
-interaction_profile_ft: "data/training_data/structures/interaction_profiles/%s_ip.pkl"
+    file_templates:
+      ligand_pdb_ft: "data/training_data/structures/ligand_pdbs/%s_ligand.pdb"
+      interaction_profile_ft: "data/training_data/structures/interaction_profiles/%s_ip.pkl"
+      point_cloud_ft: "data/graph_data/pocket_point_clouds/%s_angstroms/%s_pc.pkl"
 
-# RELATIVE PATHS FROM `pdbbind_dir`
-ligand_sdf_ft: "%s/%s_ligand.sdf"
-
+  # RELATIVE PATHS FROM `pdbbind_dir`
+  pdbbind_relative:
+    file_templates:
+      ligand_sdf_ft: "%s/%s_ligand.sdf"
+      pocket_pdb_ft: "%s/%s_pocket.pdb"
+      protein_pdb_ft: "%s/%s_protein.pdb"
 
 # ----- VARIABLES
-
-# any protein atom farther than this distance from any ligand atom...
-# ...will be removed in `trim_protein_pdbs` operation
-protein_trim_distance: 20
+variables:
+  point_cloud:
+    H_ATOM_LABELS: ['1HD1', '1HD2', '1HE2', '1HG1', '1HG2', '1HH1', '1HH2', '2HD1', '2HD2', '2HE2', '2HG1', '2HG2', '2HH1', '2HH2', '3HD1', '3HD2', '3HG1', '3HG2', 'H', 'HA', 'HA1', 'HA2', 'HB', 'HB1', 'HB2', 'HB3', 'HD1', 'HD2', 'HE', 'HE1', 'HE2', 'HE3', 'HG', 'HG1', 'HG2', 'HH', 'HH2', 'HN1', 'HN2', 'HN3', 'HZ', 'HZ1', 'HZ2', 'HZ3']
+    HEAVY_ATOM_LABELS: ['C', 'CA', 'CB', 'CD', 'CD1', 'CD2', 'CE', 'CE1', 'CE2', 'CE3', 'CG', 'CG1', 'CG2', 'CH2', 'CZ', 'CZ2', 'CZ3', 'N', 'ND1', 'ND2', 'NE', 'NE1', 'NE2', 'NH1', 'NH2', 'NZ', 'O', 'OD1', 'OD2', 'OE1', 'OE2', 'OG', 'OG1', 'OH', 'OXT', 'SD', 'SG', 'VOXEL']
+  molecules:
 
 

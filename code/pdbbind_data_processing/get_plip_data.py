@@ -1,69 +1,31 @@
-import sys
 import os
-import glob
+import itertools
+import sys
 import re
-import yaml
 import pickle
 from plip.structure.preparation import PDBComplex
+from code.utils.get_path import get_path
 
 def get_plip_data(config: dict, id_batch: list) -> None:
     # Gather interaction data from all PDBBind complexes
     # Store interactions by location/type in interaction file  
+    batch_total = len(id_batch)
+    root = config['paths']['absolute']['directories']['root']
 
-    ip_ft = config['interaction_profile_ft']
-    pdb_ft = config['pocket_pdb_ft']
-
-    ligand_file_template = config['ligand_pdb_ft'] 
-
-    pdb_dir = sorted(glob.glob(config['pocket_pdb_dir'] + "*"))
-    ligand_dir = sorted(glob.glob(config['ligand_pdb_dir'] + "*"))
-    ip_dir = "/".join(ip_ft.split('/')[:-1]) + "/"
-
-    temporary_file_dir = config['temporary_file_dir']
-
-    if os.path.exists(ip_dir) == False:
-        os.system("mkdir -p %s" % ip_dir)
-
-    ##---------PROCESS BATCH
-    batch_number = int(sys.argv[1])
-    batch_count = int(sys.argv[2])
-
-    batch_size = int(len(pdb_dir) / batch_count)
-    batch_remainder = len(pdb_dir) % batch_count
-
-    if batch_number <= batch_remainder:
-        batch_start_offset = batch_number-1
-        batch_end_offset = batch_number 
-    else:
-        batch_start_offset = batch_remainder
-        batch_end_offset = batch_remainder
-
-    batch_start_index = (batch_number - 1) * batch_size + batch_start_offset
-    batch_end_index = (batch_number - 1) * batch_size + batch_size + batch_end_offset
-
-    if batch_number < batch_count:
-        batch = pdb_dir[batch_start_index:batch_end_index]
-    else:
-        batch = pdb_dir[batch_start_index:]
-
-    trimmed_batch = []
-
-    for pdb_file in batch:
-        target_id = pdb_file.split('/')[-1].split('_')[0]
-        if os.path.exists(ip_ft % target_id) == False:
-            trimmed_batch.append(target_id)
-
-    batch_total = len(trimmed_batch)
-    ##---------PROCESS BATCH
-
+    ip_dir = get_path(config, 'interaction_profile_dir')
+    ip_ft = get_path(config, 'interaction_profile_ft')
+    protein_ft = get_path(config, 'pocket_pdb_ft')
+    ligand_ft = get_path(config, 'ligand_pdb_ft')
+    temporary_dir = get_path(config, 'temporary_dir')
+    pdbbind_dir = get_path(config, 'pdbbind_dir')
+    
     def mean(l):
         return sum(l) / len(l)
 
     # function takes object returned by PDBComplex.analyze() method
-    # returns dictionary in the following format:
-    # {INTERACTION_TYPE: [LIST OF [X,Y,Z] COORD LISTS]} 
+    # returns list of list of interactions in format [[TYPE, X, Y, Z]]
     def get_ligand_data(pl_interaction):
-        ligand_interaction_data = {} 
+        ligand_interaction_data = []
 
         for interaction in pl_interaction.all_itypes:
             i_type = re.search(r".*\.(\S+)\'\>$", str(type(interaction))).group(1)
@@ -98,34 +60,23 @@ def get_plip_data(config: dict, id_batch: list) -> None:
             if i_type in ['metal_complex', 'waterbridge']: 
                 continue
 
-            if interaction_record[0] not in ligand_interaction_data:
-                ligand_interaction_data[interaction_record[0]] = []
-
-            for coords in interaction_record[1:]:
-                if coords not in ligand_interaction_data[interaction_record[0]]:
-                    ligand_interaction_data[interaction_record[0]].append(coords)
+            ligand_interaction_data.append(interaction_record)
 
         return ligand_interaction_data 
-
 
     def get_interaction_data(pdb_file):
         my_mol = PDBComplex()
         my_mol.load_pdb(pdb_file)
         my_mol.analyze()
 
-        interaction_data = {}
+        interaction_data = []
 
         for object_ids, pl_interaction in my_mol.interaction_sets.items():
             plip_profile = get_ligand_data(pl_interaction)
+            interaction_data.extend(plip_profile)
 
-            for k,v in plip_profile.items():
-                if k not in interaction_data:
-                    interaction_data[k] = v
-                else:
-                    for idx in v:
-                        if idx not in interaction_data[k]:
-                            interaction_data[k].append(idx)
-
+        # Remove duplicates
+        interaction_data = [x for x,_ in itertools.groupby(sorted(interaction_data))]
         return interaction_data
 
 
@@ -134,12 +85,14 @@ def get_plip_data(config: dict, id_batch: list) -> None:
         padding = total_width - len(number) 
         return " "*padding + number
 
-
-    for pdb_idx, target_id in enumerate(trimmed_batch):
-        protein_pdb = pdb_ft % target_id
-        ligand_pdb = ligand_file_template % target_id
-        complex_pdb = temporary_file_dir + "%s_complex.pdb" % target_id
+    for target_count, target_id in enumerate(id_batch):
+        protein_pdb =  protein_ft % (target_id, target_id)
+        ligand_pdb = ligand_ft % target_id
+        complex_pdb = temporary_dir + "%s_complex.pdb" % target_id
         ip_file = ip_ft % target_id
+
+        if os.path.exists(ligand_pdb) == False:
+            continue
 
         # PLIP Requires a pdb complex file containing both protein and ligand
         # store ATOM/HETATM PDB lines here
@@ -179,4 +132,4 @@ def get_plip_data(config: dict, id_batch: list) -> None:
 
         os.remove(complex_pdb)
 
-        print("PLIP Processed %s: %s of %s" % (target_id, pdb_idx+1, batch_total))
+        print("PLIP Processed %s: %s of %s" % (target_id, target_count+1, batch_total))
