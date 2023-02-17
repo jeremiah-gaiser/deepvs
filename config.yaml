@@ -8,15 +8,19 @@ paths:
   # RELATIVE PATHS FROM ROOT DIRECTORY
   root_relative:
     directories:
-      ligand_pdb_dir: "data/training_data/structures/ligand_pdbs/"
       interaction_profile_dir: "data/training_data/structures/interaction_profiles/"
-      point_cloud_dir: "data/graph_data/pocket_point_clouds/%s_angstroms/"
+      ligand_pdb_dir: "data/training_data/structures/ligand_pdbs/"
+      mol_graph_dir: "data/training_data/graph_data/molecules/"
+      point_cloud_dir: "data/training_data/graph_data/pocket_point_clouds/%s_angstroms/"
+      positive_samples_dir: "data/training_data/graph_data/positive_samples/%s_angstroms/"
       temporary_dir: "data/temp/"
 
     file_templates:
-      ligand_pdb_ft: "data/training_data/structures/ligand_pdbs/%s_ligand.pdb"
       interaction_profile_ft: "data/training_data/structures/interaction_profiles/%s_ip.pkl"
-      point_cloud_ft: "data/graph_data/pocket_point_clouds/%s_angstroms/%s_pc.pkl"
+      ligand_pdb_ft: "data/training_data/structures/ligand_pdbs/%s_ligand.pdb"
+      mol_graph_ft: "data/training_data/graph_data/molecules/%s_mol.pkl"
+      point_cloud_ft: "data/training_data/graph_data/pocket_point_clouds/%s_angstroms/%s_pc.pkl"
+      positive_samples_ft: "data/training_data/graph_data/positive_samples/%s_angstroms/%s_positives.pkl"
 
   # RELATIVE PATHS FROM `pdbbind_dir`
   pdbbind_relative:
@@ -25,11 +29,16 @@ paths:
       pocket_pdb_ft: "%s/%s_pocket.pdb"
       protein_pdb_ft: "%s/%s_protein.pdb"
 
-# ----- VARIABLES
-variables:
+# ----- CONSTANTS 
+constants:
   point_cloud:
     H_ATOM_LABELS: ['1HD1', '1HD2', '1HE2', '1HG1', '1HG2', '1HH1', '1HH2', '2HD1', '2HD2', '2HE2', '2HG1', '2HG2', '2HH1', '2HH2', '3HD1', '3HD2', '3HG1', '3HG2', 'H', 'HA', 'HA1', 'HA2', 'HB', 'HB1', 'HB2', 'HB3', 'HD1', 'HD2', 'HE', 'HE1', 'HE2', 'HE3', 'HG', 'HG1', 'HG2', 'HH', 'HH2', 'HN1', 'HN2', 'HN3', 'HZ', 'HZ1', 'HZ2', 'HZ3']
     HEAVY_ATOM_LABELS: ['C', 'CA', 'CB', 'CD', 'CD1', 'CD2', 'CE', 'CE1', 'CE2', 'CE3', 'CG', 'CG1', 'CG2', 'CH2', 'CZ', 'CZ2', 'CZ3', 'N', 'ND1', 'ND2', 'NE', 'NE1', 'NE2', 'NH1', 'NH2', 'NZ', 'O', 'OD1', 'OD2', 'OE1', 'OE2', 'OG', 'OG1', 'OH', 'OXT', 'SD', 'SG', 'VOXEL']
+    INTERACTION_LABELS: ['halogenbond', 'hbond_a', 'hbond_d', 'hydroph_interaction', 'pication_c', 'pication_r', 'pistack', 'saltbridge_n', 'saltbridge_p'] 
+    EDGE_LABELS: ['atom-atom', 'atom-self', 'atom-voxel', 'voxel-self', 'voxel-voxel']
   molecules:
+    ATOM_LABELS: ['*', 'As', 'B', 'Be', 'Br', 'C', 'Cl', 'Co', 'Cu', 'F', 'Fe', 'H', 'I', 'Ir', 'Mg', 'N', 'O', 'Os', 'P', 'Pt', 'Re', 'Rh', 'Ru', 'S', 'Sb', 'Se', 'Si', 'Te', 'V', 'Zn'] 
 
-
+# ----- COMMAND LINE ARGUMENTS
+args: 
+  skip: False 

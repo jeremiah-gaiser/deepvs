@@ -8,6 +8,8 @@ from glob import glob
 from code.pdbbind_data_processing.ligand_sdf2pdb import ligand_sdf2pdb 
 # from code.pdbbind_data_processing.get_plip_data import get_plip_data
 from code.pdbbind_data_processing.generate_point_clouds import generate_point_clouds
+from code.pdbbind_data_processing.generate_mol_graphs import generate_mol_graphs
+from code.pdbbind_data_processing.filter_positive_samples import filter_positive_samples
 
 import code.utils.string_utils as string_utils
 from code.utils.get_path import get_path
@@ -20,10 +22,16 @@ parser = argparse.ArgumentParser(
 parser.add_argument('action', type=str)
 parser.add_argument('-n', '--batch_number', type=int, default=1)
 parser.add_argument('-c', '--batch_count', type=int, default=1)
+parser.add_argument('-r', '--root', type=str, default='')
+parser.add_argument('-s', '--skip', action='store_true') 
 
 args = parser.parse_args()
 
-root = os.path.dirname(__file__) + "/"
+if args.root == '':
+    root = os.path.dirname(__file__) + "/"
+else:
+    root = args.root
+
 CONFIG_PATH =  root + "config.yaml"
 
 with open(CONFIG_PATH, 'r') as config_file:  
@@ -31,19 +39,25 @@ with open(CONFIG_PATH, 'r') as config_file:
 
 config['paths']['absolute']['directories']['root'] = root
 
-training_data_processes = ['ligand_sdf2pdb', 
-                           'get_plip_data',
-                           'generate_point_clouds']
+config['args']['skip'] = args.skip
+
+training_data_pipeline = ['ligand_sdf2pdb', 
+                          'get_plip_data',
+                          'generate_mol_graphs',
+                          'generate_point_clouds',
+                          'filter_positive_samples']
 
 data_processing = False
 
-if args.action in training_data_processes: 
+if args.action in training_data_pipeline: 
     data_processing = True
 
 script_dict = {
     'ligand_sdf2pdb': ligand_sdf2pdb,
     # 'get_plip_data': get_plip_data,
-    'generate_point_clouds': generate_point_clouds
+    'generate_mol_graphs': generate_mol_graphs,
+    'generate_point_clouds': generate_point_clouds,
+    'filter_positive_samples': filter_positive_samples
 }
 
 if data_processing:

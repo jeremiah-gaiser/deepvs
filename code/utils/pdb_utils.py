@@ -1,4 +1,4 @@
-def get_pdb_atoms(pdb_file: str, ligand: bool=False) -> list:
+def get_pdb_atoms(pdb_file: str, ligand: bool=False, deprotonate: bool=False) -> list:
     atom_list = []
     atom_type = "ATOM"
 
@@ -18,6 +18,10 @@ def get_pdb_atoms(pdb_file: str, ligand: bool=False) -> list:
         for line in pdb_in:
             if line[:6].strip() != atom_type:
                 continue
+
+            if deprotonate:
+                if line[76:78].strip() == 'H':
+                    continue
             
             atom_data = [line[12:16].strip()]
             atom_data.extend([float(line[ptr[0]:ptr[1]].strip()) for ptr in line_ptrs])
