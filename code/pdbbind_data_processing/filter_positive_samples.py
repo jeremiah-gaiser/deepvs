@@ -42,7 +42,8 @@ def filter_positive_samples(config: dict, id_batch: list, resolution: float=1.0)
         last_voxel_index = torch.where(full_graph.x[:, voxel_label_index]==1)[0].size(0)-1
 
         # Remove any voxel source edges (voxels should not influence any other nodes in the graph)
-        filtered_edges = torch.where(full_graph.edge_index[0] > last_voxel_index)[0]
+        # filtered_edges = torch.where(full_graph.edge_index[0] > last_voxel_index)[0]
+        filtered_edges = torch.where(full_graph.edge_labels[:, voxel_voxel_edge_label_index] == 0)[0]
 
         edge_index = full_graph.edge_index[:, filtered_edges]
         edge_attr = full_graph.edge_attr[filtered_edges]
@@ -68,21 +69,13 @@ def filter_positive_samples(config: dict, id_batch: list, resolution: float=1.0)
 
         sub_edge_index.apply_(lambda x: sub_index_dict[x])
 
-        # pc_data = Data(x=torch.tensor(graph_x, dtype=torch.float),
-        #                y=torch.tensor(graph_y, dtype=torch.long),
-        #                pos=torch.tensor(graph_pos, dtype=torch.float),
-        #                edge_index=torch.tensor(graph_edge_index, dtype=torch.long),
-        #                edge_attr=torch.tensor(graph_edge_attr, dtype=torch.float),
-        #                edge_labels=torch.tensor(graph_edge_labels, dtype=torch.long),
-        #                contact_index=torch.tensor(contact_map, dtype=torch.long))
-
         sub_graph = Data(x=full_graph.x[node_subset],
                         y=full_graph.y[node_subset],
                         pos=full_graph.pos[node_subset],
                         edge_index=sub_edge_index,
                         edge_attr=sub_edge_attr,
                         edge_labels=sub_edge_labels,
-                        contact_index=full_graph.contact_index[node_subset])
+                        contact_map=full_graph.contact_index[node_subset])
 
         pickle.dump(sub_graph, open(positive_sample_file, 'wb'))
 

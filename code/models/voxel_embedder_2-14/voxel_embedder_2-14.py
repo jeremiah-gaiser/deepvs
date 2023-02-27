@@ -1,23 +1,18 @@
-hidden = 512 
-INTERACTION_TYPES = protein_config['interaction_labels']
-NODE_DIMS = 38 
-EDGE_DIMS = 9
-DUMMY_INDEX = protein_config['atom_labels'].index('DUMMY')
-MAX_EDGE_WEIGHT = 15.286330223083496
+from torch_geometric.nn import GCN2Conv
 
 class GCN(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, feature_dim, hidden_dim, out_dim):
         super().__init__()
-        self.linear1 = torch.nn.Linear(NODE_DIMS, hidden)
+        self.linear1 = torch.nn.Linear(node_dims, hidden)
         
         self.conv1 = GCN2Conv(hidden, 0.2, add_self_loops=False)
         self.conv2 = GCN2Conv(hidden, 0.2, add_self_loops=False)
         self.conv3 = GCN2Conv(hidden, 0.2, add_self_loops=False)
 
-        self.linear2 = torch.nn.Linear(hidden, len(INTERACTION_TYPES))
+        self.linear2 = torch.nn.Linear(hidden, len(INTERACTION_LABELS))
 
     def forward(self, data):
-        x, edge_index, edge_weights = data.x[:,:-3], data.edge_index, data.edge_attr[:,-1] / MAX_EDGE_WEIGHT
+        x, edge_index, edge_weights = data.x, data.edge_index, data.edge_attr 
 
         x = self.linear1(x)
 
@@ -31,4 +26,4 @@ class GCN(torch.nn.Module):
         h = F.relu(h)
         
         o = self.linear2(h)
-        return h
+        return h,o

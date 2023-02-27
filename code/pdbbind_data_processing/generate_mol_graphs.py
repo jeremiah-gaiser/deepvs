@@ -35,35 +35,38 @@ def generate_mol_graphs(config: dict, id_batch: list, ) -> None:
 
         print("%s: %s of %s" % (pdb_id, t_idx, batch_total))
 
-        pdb_file_content = ""
-        pdb_H_count = 0
-        pdb_heavy_atom_data = []
+        mol_sdf_file = mol_sdf_ft % (pdb_id, pdb_id)
+        
+        H_count = 0
+        heavy_atom_data = []
         mol_pos = []
         heavy_marker = []
+        mol = None
 
-        with open(mol_pdb_ft % pdb_id, 'r') as pdb_in:
-            for line in pdb_in:
-                pdb_file_content += line
+        with Chem.SDMolSupplier(mol_sdf_file, removeHs=False, sanitize=False) as sd_mol_in:
+            for rdkit_mol in sd_mol_in:
+                mol = rdkit_mol
 
-                if line[:6].strip() in ['ATOM', 'HETATM']:
-                   
-                    atom_x, atom_y, atom_z = (float(line[30:38].strip()),
-                                              float(line[38:46].strip()),
-                                              float(line[46:54].strip()))
+        if mol is None:
+            continue
 
-                    mol_pos.append([atom_x, atom_y, atom_z])
+        conformer = mol.GetConformer()
 
-                    # skip hydrogen atoms in ligand PDB
-                    if line[76:78].strip() == 'H':
-                        pdb_H_count += 1
-                        heavy_marker.append(0)
-                        continue
+        for atom in mol.GetAtoms():
+            pos = conformer.GetAtomPosition(atom.GetIdx())
+            atom_x, atom_y, atom_z = (pos.x, pos.y, pos.z)
+            mol_pos.append([atom_x, atom_y, atom_z])
 
-                    pdb_heavy_atom_data.append([line[12:16].strip(),
-                                                atom_x,
-                                                atom_y,
-                                                atom_z])
-                    heavy_marker.append(1)
+            if atom.GetSymbol() == 'H':
+                H_count += 1
+                heavy_marker.append(0)
+                continue
+
+            heavy_atom_data.append([atom.GetSymbol(),
+                                    atom_x,
+                                    atom_y,
+                                    atom_z])
+            heavy_marker.append(1)
 
         mol_y = np.zeros((len(heavy_marker), len(INTERACTION_LABELS)))
 
@@ -78,7 +81,7 @@ def generate_mol_graphs(config: dict, id_batch: list, ) -> None:
 
             # list of atomic distances from interaction location to atoms in ligand
             # list items correspond in `pdb_data_distances` correspond to list items in `pdb_heavy_atom_data`
-            pdb_data_distances = np.array([get_distance(x[-3:], interaction_xyz) for x in pdb_heavy_atom_data])
+            pdb_data_distances = np.array([get_distance(x[-3:], interaction_xyz) for x in heavy_atom_data])
 
             # list of atom indices corresponding to 'pdb_heavy_atom_data', sorted by distance to interaction location 
             sorted_pdb_data_indices = np.argsort(pdb_data_distances)
@@ -106,8 +109,8 @@ def generate_mol_graphs(config: dict, id_batch: list, ) -> None:
                 mol_y[atom_idx] = mol_gen_utils.one_hot_update(INTERACTION_LABELS, mol_y[atom_idx], [itype])
 
         try:
-            molecule = Chem.rdmolfiles.MolFromPDBBlock(pdb_file_content, removeHs=False)
-            g = mol_gen_utils.generate_mol_graph(molecule, mol_y, ATOM_LABELS)
+            # molecule = Chem.rdmolfiles.MolFromPDBBlock(pdb_file_content, removeHs=False)
+            g = mol_gen_utils.generate_mol_graph(mol, mol_y, ATOM_LABELS)
             mol_pos = torch.tensor(mol_pos)
             heavy_marker = torch.tensor(heavy_marker)
             g.heavy = heavy_marker

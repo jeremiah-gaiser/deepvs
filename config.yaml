@@ -11,17 +11,24 @@ paths:
       interaction_profile_dir: "data/training_data/structures/interaction_profiles/"
       ligand_pdb_dir: "data/training_data/structures/ligand_pdbs/"
       mol_graph_dir: "data/training_data/graph_data/molecules/"
+      protein_graph_dir: "data/training_data/graph_data/proteins/"
       point_cloud_dir: "data/training_data/graph_data/pocket_point_clouds/%s_angstroms/"
-      positive_samples_dir: "data/training_data/graph_data/positive_samples/%s_angstroms/"
+      training_samples_dir: "data/training_data/graph_data/training_samples/%s_angstroms/"
       temporary_dir: "data/temp/"
+      voxel_dir: "data/training_data/graph_data/voxels/%s_angstroms/"
+      voxel_embed_dir: "data/training_data/graph_data/voxel_embeds/%s_angstroms/"
 
     file_templates:
       interaction_profile_ft: "data/training_data/structures/interaction_profiles/%s_ip.pkl"
       ligand_pdb_ft: "data/training_data/structures/ligand_pdbs/%s_ligand.pdb"
       mol_graph_ft: "data/training_data/graph_data/molecules/%s_mol.pkl"
       point_cloud_ft: "data/training_data/graph_data/pocket_point_clouds/%s_angstroms/%s_pc.pkl"
-      positive_samples_ft: "data/training_data/graph_data/positive_samples/%s_angstroms/%s_positives.pkl"
+      training_samples_ft: "data/training_data/graph_data/training_samples/%s_angstroms/%s_trainings.pkl"
+      protein_graph_ft: "data/training_data/graph_data/proteins/%s_protein.pkl"
+      voxel_ft: "data/training_data/graph_data/voxels/%s_angstroms/%s_voxels.pkl"
+      voxel_embed_ft: "data/training_data/graph_data/voxel_embeds/%s_angstroms/%s_voxel_embeds.pkl"
 
+    
   # RELATIVE PATHS FROM `pdbbind_dir`
   pdbbind_relative:
     file_templates:
@@ -35,9 +42,15 @@ constants:
     H_ATOM_LABELS: ['1HD1', '1HD2', '1HE2', '1HG1', '1HG2', '1HH1', '1HH2', '2HD1', '2HD2', '2HE2', '2HG1', '2HG2', '2HH1', '2HH2', '3HD1', '3HD2', '3HG1', '3HG2', 'H', 'HA', 'HA1', 'HA2', 'HB', 'HB1', 'HB2', 'HB3', 'HD1', 'HD2', 'HE', 'HE1', 'HE2', 'HE3', 'HG', 'HG1', 'HG2', 'HH', 'HH2', 'HN1', 'HN2', 'HN3', 'HZ', 'HZ1', 'HZ2', 'HZ3']
     HEAVY_ATOM_LABELS: ['C', 'CA', 'CB', 'CD', 'CD1', 'CD2', 'CE', 'CE1', 'CE2', 'CE3', 'CG', 'CG1', 'CG2', 'CH2', 'CZ', 'CZ2', 'CZ3', 'N', 'ND1', 'ND2', 'NE', 'NE1', 'NE2', 'NH1', 'NH2', 'NZ', 'O', 'OD1', 'OD2', 'OE1', 'OE2', 'OG', 'OG1', 'OH', 'OXT', 'SD', 'SG', 'VOXEL']
     INTERACTION_LABELS: ['halogenbond', 'hbond_a', 'hbond_d', 'hydroph_interaction', 'pication_c', 'pication_r', 'pistack', 'saltbridge_n', 'saltbridge_p'] 
+    INTERACTION_COUNTS: [1274, 39270, 29837, 63244, 531, 1305, 6534, 5664, 2142]
     EDGE_LABELS: ['atom-atom', 'atom-self', 'atom-voxel', 'voxel-self', 'voxel-voxel']
   molecules:
     ATOM_LABELS: ['*', 'As', 'B', 'Be', 'Br', 'C', 'Cl', 'Co', 'Cu', 'F', 'Fe', 'H', 'I', 'Ir', 'Mg', 'N', 'O', 'Os', 'P', 'Pt', 'Re', 'Rh', 'Ru', 'S', 'Sb', 'Se', 'Si', 'Te', 'V', 'Zn'] 
+
+models:
+  voxel_embedder: "code/models/voxel_embedder/%s" 
+  mol_embedder: "code/models/molecule_embedder/%s" 
+  active_classifier: "code/models/active_classifier/%s" 
 
 # ----- COMMAND LINE ARGUMENTS
 args: 
